@@ -15,6 +15,9 @@ pub struct GreetingAccount {
     pub counter: u32,
 }
 
+mod instruction;
+use crate::instruction::HelloWorldInstruction;
+
 // Declare and export the program's entrypoint
 entrypoint!(process_instruction);
 
@@ -40,7 +43,13 @@ pub fn process_instruction(
 
     // Increment and store the number of times the account has been greeted
     let mut greeting_account = GreetingAccount::try_from_slice(&account.data.borrow())?;
-    greeting_account.counter += 1;
+    let instruction = HelloWorldInstruction::unpack(_instruction_data)?;
+
+    match instruction {
+        HelloWorldInstruction::Increment => greeting_account.counter += 1,
+        HelloWorldInstruction::Decrement => greeting_account.counter -= 1,
+        HelloWorldInstruction::Set(value) => greeting_account.counter = value
+    }
     greeting_account.serialize(&mut &mut account.data.borrow_mut()[..])?;
 
     msg!("Greeted {} time(s)!", greeting_account.counter);
